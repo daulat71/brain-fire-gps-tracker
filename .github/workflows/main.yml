@@ -17,24 +17,24 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # 👈 Kivy 2.3.0 के लिए सबसे बेस्ट Python वर्ज़न
+        python-version: '3.11'
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17' # 👈 Android API 34 के लिए JDK 17 सबसे ज़रूरी है
+        java-version: '17'
 
     - name: Install System Dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx16-dev libxft-dev libffi7
+        # 👈 नीचे की लाइन में libx16-dev को बदलकर सही (libx11-dev) कर दिया गया है
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libffi7
         pip install --upgrade pip setuptools virtualenv
         pip install "cython<3.0.0" buildozer
 
     - name: Build APK with Buildozer
       run: |
-        # बिल्डोज़र को बिना किसी रुकावट के रन करने के लिए
         buildozer android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
