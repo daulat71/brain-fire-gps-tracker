@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -14,23 +14,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    # 🚀 जादुई स्टेप: यह पहले से तैयार Docker Environment का उपयोग करेगा ताकि कोई SDK/NDK एरर न आए
+    - name: Build APK with Buildozer Docker
+      uses: ArtemGovorov/buildozer-action@v1
       with:
-        python-version: '3.10'
-
-    - name: Install System Dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx16-dev libxft-dev libffi7
-        pip install --upgrade pip setuptools virtualenv
-        pip install "cython<3.0.0" "sh==1.14.3" buildozer
-
-    - name: Build APK with Buildozer
-      run: |
-        buildozer android debug
-      env:
-        ACCEPT_ANDROID_SDK_LICENSES: "y"
+        command: 'buildozer android debug'
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
