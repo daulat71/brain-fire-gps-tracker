@@ -1,11 +1,14 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch: # इससे आप जब चाहें बटन दबाकर APK बना सकते हैं
+  workflow_dispatch: # इससे आप बटन दबाकर APK बना सकते हैं
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
     - name: Checkout code
@@ -14,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-node-version: '3.10'
+        python-version: '3.10' # 👈 यहाँ सुधार कर दिया गया है
 
     - name: Install Dependencies
       run: |
