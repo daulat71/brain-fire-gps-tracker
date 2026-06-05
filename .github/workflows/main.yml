@@ -25,6 +25,18 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    # ⚡ जादुई स्टेप: यह डाउनलोडिंग का समय बचाएगा
+    - name: Cache Android SDK & Buildozer
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          ~/.gradle
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
+     Silber dependencies install
     - name: Install System Dependencies
       run: |
         sudo apt update
@@ -34,7 +46,6 @@ jobs:
 
     - name: Build APK with Buildozer
       run: |
-        # 🚀 जादुई स्टेप: यह एंड्रॉइड के सभी लाइसेंस को पहले से ही 'YES' कर देगा ताकि प्रोसेस न अटके
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
         yes | buildozer android debug
       env:
