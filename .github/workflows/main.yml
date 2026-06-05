@@ -28,10 +28,10 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt update
-        # 👈 नीचे की लाइन में libx16-dev को बदलकर सही (libx11-dev) कर दिया गया है
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libffi7
         pip install --upgrade pip setuptools virtualenv
-        pip install "cython<3.0.0" buildozer
+        # 👈 यहाँ buildozer को बिना किसी पुराने कैशे के एकदम नया इंस्टॉल करने के लिए सेट किया है
+        pip install --upgrade "cython<3.0.0" buildozer 
 
     - name: Build APK with Buildozer
       run: |
