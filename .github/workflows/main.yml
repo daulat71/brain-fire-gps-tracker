@@ -7,9 +7,6 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -36,11 +33,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildozer-
 
-     Silber dependencies install
+    # हमने यहाँ कमेंट को सही कर दिया है ताकि एरर न आए
     - name: Install System Dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libffi7
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev
         pip install --upgrade pip setuptools virtualenv
         pip install "cython<3.0.0" buildozer
 
