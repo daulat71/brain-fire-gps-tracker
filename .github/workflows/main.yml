@@ -30,12 +30,13 @@ jobs:
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libffi7
         pip install --upgrade pip setuptools virtualenv
-        # 👈 यहाँ buildozer को बिना किसी पुराने कैशे के एकदम नया इंस्टॉल करने के लिए सेट किया है
-        pip install --upgrade "cython<3.0.0" buildozer 
+        pip install "cython<3.0.0" buildozer
 
     - name: Build APK with Buildozer
       run: |
-        buildozer android debug
+        # 🚀 जादुई स्टेप: यह एंड्रॉइड के सभी लाइसेंस को पहले से ही 'YES' कर देगा ताकि प्रोसेस न अटके
+        mkdir -p ~/.android && touch ~/.android/repositories.cfg
+        yes | buildozer android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
 
