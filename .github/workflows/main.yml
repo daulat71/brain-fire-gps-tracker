@@ -5,7 +5,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04 # 👈 स्थिरता के लिए एक फिक्स उबंटू वर्जन सेट किया
+    runs-on: ubuntu-22.04
+
+    # 2026 के नए नियमों के अनुसार Node.js 24 को फ़ोर्स करना ज़रूरी है
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
     - name: Checkout code
@@ -21,11 +25,12 @@ jobs:
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx16-dev libxft-dev libffi7
         pip install --upgrade pip
-        pip install "cython<3.0.0" buildozer # 👈 Cython का पुराना स्थिर वर्जन ताकि एरर न आए
+        # Kivy कंपाइलेशन फेल न हो, इसलिए setuptools और cython का यह वर्जन ज़रूरी है
+        pip install "setuptools<66.0.0" "cython<3.0.0" buildozer
 
     - name: Build APK with Buildozer
       run: |
-        # यहाँ हम बिल्डोज़र को बिना रूट वार्निंग के सीधे रन कर रहे हैं
+        # बिल्डोज़र को ऑटोमैटिकली कॉन्फ़िगर करके रन करना
         buildozer android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
