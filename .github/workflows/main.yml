@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
       - name: Checkout code
@@ -16,18 +18,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11' # थोड़ा लेटेस्ट वर्जन
 
       - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev libavformat-dev libavcodec-dev libswscale-dev
           pip install --upgrade pip setuptools virtualenv
           pip install "cython<3.0.0" buildozer
 
       - name: Build APK with Buildozer
         run: |
-          # यह कमांड बिल्डोज़र को चलाएगी
           yes | buildozer android debug
         env:
           ACCEPT_ANDROID_SDK_LICENSES: "y"
