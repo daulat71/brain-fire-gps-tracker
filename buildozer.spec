@@ -6,19 +6,23 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# फालतू की भारी लाइब्रेरी हटाकर केवल सटीक आवश्यकताओं को रखा है
+# आवश्यक लाइब्रेरीज़ (यह बिल्कुल सही हैं)
 requirements = python3, kivy==2.3.0, kivymd==1.2.0, plyer, requests
 
 orientation = portrait
 fullscreen = 0
 
-# आवश्यक परमिशन्स
+# जीपीएस और इंटरनेट के लिए आवश्यक परमिशन्स
 android.permissions = INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
 
-# ⚠️ उबंटू सर्वर पर कंपाइलेशन को फ़ास्ट और एरर-फ़्री बनाने के लिए सटीक API सेटिंग्स
+# एरर से बचने के लिए सटीक API और NDK सेटिंग्स
 android.api = 33
 android.minapi = 21
 android.ndk_api = 21
+
+# ⚠️ सबसे महत्वपूर्ण सुधार: कंपाइलेशन एरर को रोकने के लिए NDK 25b लॉक किया गया है
+android.ndk = 25b
+
 android.archs = arm64-v8a
 
 [buildozer]
