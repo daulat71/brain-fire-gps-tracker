@@ -7,7 +7,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
 # सबसे महत्वपूर्ण सुधार: KivyMD का वह वर्जन जो कंपाइल होते समय क्रैश नहीं होता
-requirements = python3, cython==0.29.36, kivy==2.3.0, https://github.com/kivymd/KivyMD/archive/master.zip, plyer, requests
+requirements = python3, kivy==2.3.0, kivymd==1.2.0, pillow, plyer, requests, urllib3, openssl
 
 orientation = portrait
 fullscreen = 0
