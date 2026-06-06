@@ -1,6 +1,5 @@
-name: Flutter Build APK
+name: Build KivyMD APK
 
-# यह कब चलेगा: जब आप खुद बटन दबाएंगे (workflow_dispatch) या जब कोड पुश करेंगे
 on:
   push:
     branches: [ "main" ]
@@ -8,38 +7,33 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-      # 1. कोड को GitHub Runner पर लाना
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Java (JDK) सेटअप करना जो Android के लिए ज़रूरी है
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          python-version: '3.10'
 
-      # 3. Flutter को सेटअप करना
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.22.0' # आप अपना वर्शन यहाँ बदल सकते हैं
-          channel: 'stable'
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev
+          pip install --upgrade pip setuptools virtualenv
+          pip install "cython<3.0.0" buildozer
 
-      # 4. ज़रूरी पैकेजेस डाउनलोड करना
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Build APK with Buildozer
+        run: |
+          # यह कमांड बिल्डोज़र को चलाएगी
+          yes | buildozer android debug
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "y"
 
-      # 5. Android APK बनाना
-      - name: Build APK
-        run: flutter build apk --release
-
-      # 6. बनने के बाद APK को डाउनलोड करने के लिए उपलब्ध कराना
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Flutter-Release-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: GPS-Tracker-APK
+          path: bin/*.apk
