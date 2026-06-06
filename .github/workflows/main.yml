@@ -5,9 +5,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04  # ज़्यादा स्टेबल वर्ज़न
     env:
-      # Node.js की चेतावनी और एरर को रोकने के लिए
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
@@ -25,16 +24,15 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Dependencies
+    - name: Install System Dependencies
       run: |
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev
         pip install --upgrade pip setuptools virtualenv
-        pip install "cython<3.0.0" buildozer
+        pip install "cython<3.0.0" "buildozer==1.5.0"
 
     - name: Build with Buildozer
       run: |
-        #repositories.cfg की समस्या ठीक करने के लिए
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
         yes | buildozer android debug
       env:
@@ -43,5 +41,5 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: My-GPS-App
+        name: GPS-Tracker-App
         path: bin/*.apk
