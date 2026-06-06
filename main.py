@@ -23,7 +23,16 @@ else:
 class GPSTrackerApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
-        self.store = JsonStore('user_config.json')
+        
+        # एंड्रॉइड के लिए सुरक्षित स्टोरेज पाथ
+        if platform == 'android':
+            from android.storage import app_context
+            data_dir = app_context().getFilesDir().getAbsolutePath()
+            store_path = os.path.join(data_dir, 'user_config.json')
+        else:
+            store_path = 'user_config.json'
+            
+        self.store = JsonStore(store_path)
         self.tracking_active = False
         self.current_lat = 24.5854
         self.current_lon = 73.7125
