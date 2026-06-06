@@ -7,13 +7,13 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
 # सबसे महत्वपूर्ण सुधार: KivyMD का वह वर्जन जो कंपाइल होते समय क्रैश नहीं होता
-requirements = python3, kivy==2.3.0, kivymd==1.2.0, pillow, plyer, requests, urllib3, openssl
+requirements = python3, kivy==2.3.0, kivymd==1.2.0, pillow, plyer, requests, urllib3, openssl, certifi
 
 orientation = portrait
 fullscreen = 0
 
 # एंड्रॉइड परमिशन्स
-android.permissions = INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
+android.permissions = INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, FOREGROUND_SERVICE
 
 # स्थिर (Stable) एंड्रॉइड सेटिंग्स
 android.api = 33
