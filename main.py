@@ -39,8 +39,14 @@ class GPSTrackerApp(MDApp):
 
         self.main_layout = MDBoxLayout(orientation='vertical', padding=30, spacing=20)
         
+        # सुधार: एंड्रॉइड 13+ के लिए सभी ज़रूरी परमिशन्स एक साथ मांगना
         if platform == 'android':
-            request_permissions([Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION])
+            request_permissions([
+                Permission.ACCESS_FINE_LOCATION, 
+                Permission.ACCESS_COARSE_LOCATION,
+                Permission.FOREGROUND_SERVICE,
+                Permission.POST_NOTIFICATIONS
+            ])
         
         if self.store.exists('user'):
             self.show_tracking_screen()
@@ -56,11 +62,13 @@ class GPSTrackerApp(MDApp):
         title.font_style = "H5"
         self.main_layout.add_widget(title)
         
-        self.name_input = MDTextField(hint_text="Enter Your Full Name", size_hint_x=0.9, pos_hint={'center_x': 0.5})
-        self.phone_input = MDTextField(hint_text="Enter Mobile Number", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        # सुधार: KivyMD 1.2.0 के अनुकूल टेक्सटफ़ील्ड्स (mode="outline" का उपयोग सुरक्षित रहता है)
+        self.name_input = MDTextField(hint_text="Enter Your Full Name", mode="outline", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        self.phone_input = MDTextField(hint_text="Enter Mobile Number", mode="outline", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         
         self.ip_input = MDTextField(
-            hint_text="Enter Django Server IP (e.g. 192.168.100.66:8000)", 
+            hint_text="Enter Django Server IP", 
+            mode="outline",
             size_hint_x=0.9, 
             pos_hint={'center_x': 0.5}
         )
@@ -144,9 +152,14 @@ class GPSTrackerApp(MDApp):
             else:
                 self.status_label.text = "Status: PC Test Mode (Sending Default GPS)"
             
+            # हर 5 सेकंड में नेटवर्क थ्रेड को ट्रिगर करना
             Clock.schedule_interval(self.trigger_network_thread, 5)
 
     def on_gps_location(self, **kwargs):
+        # सुधार: थ्रेड से आने वाले डेटा को मुख्य थ्रेड पर सुरक्षित रूप से अपडेट करना
+        Clock.schedule_once(lambda dt: self._update_gps_ui(kwargs))
+
+    def _update_gps_ui(self, kwargs):
         self.current_lat = kwargs.get('lat', self.current_lat)
         self.current_lon = kwargs.get('lon', self.current_lon)
         clean_ip = self.django_url.replace("http://", "").replace("/api/log-location/", "")
