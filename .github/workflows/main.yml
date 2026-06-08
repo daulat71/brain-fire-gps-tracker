@@ -25,7 +25,7 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt update
-        # यहाँ हमने टूटे हुए पैकेजेस को हटाकर 'libunwind-dev' को मैन्युअली जोड़ दिया है
+        # पूरी तरह क्लीन और जांची हुई डिपेंडेंसी लिस्ट
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-venv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache patch libltdl-dev libunwind-dev
         
         pip install --upgrade pip setuptools wheel virtualenv
@@ -33,6 +33,8 @@ jobs:
 
     - name: Build with Buildozer
       run: |
+        # पुराना कैशे साफ़ करके नए सिरे से कंपाइल करना ताकि पुराना एरर न आए
+        buildozer android clean
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
         buildozer --verbose android debug
       env:
