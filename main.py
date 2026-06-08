@@ -1,4 +1,4 @@
-#import os
+import os
 # Windows पर ग्राफिक्स एरर से बचने के लिए
 #os.environ['KIVY_GL_BACKEND'] = 'angle_sdl2'
 
