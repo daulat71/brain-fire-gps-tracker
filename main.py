@@ -1,209 +1,174 @@
-import os
-import json
-import threading
-import requests
+#import os
+# Windows पर ग्राफिक्स एरर से बचने के लिए
+#os.environ['KIVY_GL_BACKEND'] = 'angle_sdl2'
+
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDFlatButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.storage.jsonstore import JsonStore
+import requests
 
-if platform == 'android':
-    from android.permissions import request_permissions, Permission
-    try:
-        from plyer import gps
-    except ImportError:
-        gps = None
-else:
+# GPS लाइब्रेरी लोड करना
+try:
+    from plyer import gps
+except ImportError:
     gps = None
 
 class GPSTrackerApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         
-        # एंड्रॉइड और पीसी दोनों के लिए 100% सुरक्षित और क्रैश-फ्री स्टोरेज पाथ
-        if platform == 'android':
-            data_dir = self.user_data_dir  # यह बिना किसी एरर के एंड्रॉइड का ऐप-डेटा फोल्डर देता है
-            store_path = os.path.join(data_dir, 'user_config.json')
-        else:
-            store_path = 'user_config.json'
-            
-        self.store = JsonStore(store_path)
+        # मोबाइल में डेटा स्टोर करने के लिए सही रास्ता (Path) तय करना
+        data_dir = self.user_data_dir
+        self.store = JsonStore(os.path.join(data_dir, 'user_config.json'))
+        
         self.tracking_active = False
         self.current_lat = 24.5854
         self.current_lon = 73.7125
+        self.event = None 
 
-        self.main_layout = MDBoxLayout(orientation='vertical', padding=30, spacing=20)
+        self.main_layout = MDBoxLayout(orientation='vertical', padding=30, spacing=15)
         
-        # एंड्रॉइड परमिशन्स का सुरक्षित सेटअप
-        if platform == 'android':
-            try:
-                request_permissions([
-                    Permission.ACCESS_FINE_LOCATION, 
-                    Permission.ACCESS_COARSE_LOCATION,
-                    Permission.FOREGROUND_SERVICE,
-                    "android.permission.POST_NOTIFICATIONS"
-                ])
-            except Exception as e:
-                print(f"Permission Request Error: {e}")
-        
+        # अगर डेटा पहले से है तो ट्रैकिंग स्क्रीन, नहीं तो सेटअप स्क्रीन
         if self.store.exists('user'):
             self.show_tracking_screen()
         else:
-            self.show_registration_screen()
+            self.show_setup_screen()
             
         return self.main_layout
 
-    def show_registration_screen(self):
+    def show_setup_screen(self):
+        """सेटिंग्स और रजिस्ट्रेशन स्क्रीन"""
         self.main_layout.clear_widgets()
         
-        # KivyMD 1.2.0 के नियमानुसार font_style को छोटे अक्षरों (h5) में किया गया है
-        title = MDLabel(text="Engineer Registration", halign="center")
-        title.font_style = "h5" 
-        self.main_layout.add_widget(title)
+        self.main_layout.add_widget(MDLabel(
+            text="App Settings & Registration", 
+            font_style="H5", 
+            halign="center",
+            size_hint_y=None, height=50
+        ))
         
-        self.name_input = MDTextField(hint_text="Enter Your Full Name", mode="outline", size_hint_x=0.9, pos_hint={'center_x': 0.5})
-        self.phone_input = MDTextField(hint_text="Enter Mobile Number", mode="outline", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        # इनपुट फील्ड्स
+        self.name_input = MDTextField(hint_text="Full Name", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        self.phone_input = MDTextField(hint_text="Mobile Number", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        self.ip_input = MDTextField(text="192.168.100.66", hint_text="Django Server IP", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        self.time_input = MDTextField(text="5", hint_text="Send Interval (Seconds)", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         
-        self.ip_input = MDTextField(
-            hint_text="Enter Django Server IP", 
-            mode="outline",
-            size_hint_x=0.9, 
-            pos_hint={'center_x': 0.5}
-        )
-        self.ip_input.text = "192.168.100.66:8000"
-        
-        reg_btn = MDRaisedButton(
-            text="Confirm & Save", 
+        save_btn = MDRaisedButton(
+            text="Save Configuration", 
             pos_hint={'center_x': 0.5},
-            on_release=self.register_user
+            on_release=self.save_settings
         )
         
         self.main_layout.add_widget(self.name_input)
         self.main_layout.add_widget(self.phone_input)
         self.main_layout.add_widget(self.ip_input)
-        self.main_layout.add_widget(reg_btn)
+        self.main_layout.add_widget(self.time_input)
+        self.main_layout.add_widget(save_btn)
 
-    def register_user(self, *args):
-        name = self.name_input.text.strip()
-        phone = self.phone_input.text.strip()
-        django_ip = self.ip_input.text.strip()
-        
-        if name and phone and django_ip:
-            if not django_ip.startswith("http://") and not django_ip.startswith("https://"):
-                django_ip = "http://" + django_ip
-            if not django_ip.endswith("/"):
-                django_ip = django_ip + "/"
-                
-            final_url = f"{django_ip}api/log-location/"
-            self.store.put('user', name=name, phone=phone, server_url=final_url)
+    def save_settings(self, *args):
+        """डेटा को JsonStore में सेव करना"""
+        name = self.name_input.text
+        phone = self.phone_input.text
+        ip = self.ip_input.text
+        interval = self.time_input.text
+
+        if name and phone and ip and interval:
+            self.store.put('user', 
+                           name=name, 
+                           phone=phone,
+                           ip=ip,
+                           interval=int(interval))
             self.show_tracking_screen()
         else:
-            print("Error: Fill all details")
+            # यहाँ आप चाहें तो एरर मैसेज दिखा सकते हैं
+            print("All fields are required!")
 
     def show_tracking_screen(self):
+        """मुख्य ट्रैकिंग स्क्रीन"""
         self.main_layout.clear_widgets()
         
+        # स्टोर से डेटा लोड करना
         user_data = self.store.get('user')
         self.user_name = user_data['name']
         self.user_phone = user_data['phone']
-        self.django_url = user_data['server_url']
+        self.django_ip = user_data['ip']
+        self.update_interval = user_data['interval']
 
-        # यहाँ भी h6 को छोटा किया गया है क्रैश रोकने के लिए
-        welcome_lbl = MDLabel(text=f"Welcome, {self.user_name}", halign="center")
-        welcome_lbl.font_style = "h6"
-        self.main_layout.add_widget(welcome_lbl)
+        self.main_layout.add_widget(MDLabel(text=f"Welcome, {self.user_name}", font_style="H6", halign="center"))
         
-        self.status_label = MDLabel(text="Status: Ready", halign="center", theme_text_color="Hint")
-        
-        clean_ip = self.django_url.replace("http://", "").replace("/api/log-location/", "")
-        self.gps_label = MDLabel(
-            text=f"Phone: {self.user_phone}\nServer: {clean_ip}\nGPS: Ready to track", 
-            halign="center"
+        self.status_label = MDLabel(
+            text=f"Server: {self.django_ip}\nInterval: {self.update_interval} sec\nStatus: Ready", 
+            halign="center", 
+            theme_text_color="Secondary"
         )
         
-        self.start_btn = MDRaisedButton(text="Start Sharing Location", size_hint=(1, None), on_release=self.start_tracking)
-        self.stop_btn = MDRaisedButton(text="Stop Sharing", size_hint=(1, None), md_bg_color=[1, 0, 0, 1], on_release=self.stop_tracking)
+        self.start_btn = MDRaisedButton(text="START SHARING", size_hint=(1, None), on_release=self.start_tracking)
+        self.stop_btn = MDRaisedButton(text="STOP SHARING", size_hint=(1, None), md_bg_color=(1, 0, 0, 1), on_release=self.stop_tracking)
         
-        reset_btn = MDRaisedButton(
-            text="Change IP / Settings", 
-            size_hint=(0.6, None), 
+        # वापस सेटिंग में जाने का बटन
+        self.change_btn = MDFlatButton(
+            text="Change IP or Settings", 
             pos_hint={'center_x': 0.5},
-            md_bg_color=[0.5, 0.5, 0.5, 1], 
-            on_release=self.reset_settings
+            on_release=lambda x: self.show_setup_screen()
         )
-        
+
         self.main_layout.add_widget(self.status_label)
-        self.main_layout.add_widget(self.gps_label)
         self.main_layout.add_widget(self.start_btn)
         self.main_layout.add_widget(self.stop_btn)
-        self.main_layout.add_widget(reset_btn)
+        self.main_layout.add_widget(self.change_btn)
 
     def start_tracking(self, *args):
         if not self.tracking_active:
             self.tracking_active = True
+            
+            # GPS चालू करना (सिर्फ एंड्रॉइड पर काम करेगा)
             if platform == 'android' and gps:
                 try:
                     gps.configure(on_location=self.on_gps_location)
-                    gps.start(minTime=5000, minDistance=1)
-                    self.status_label.text = "Status: Live GPS Tracking ON"
+                    gps.start()
                 except Exception as e:
-                    self.status_label.text = f"GPS Error: {str(e)}"
-            else:
-                self.status_label.text = "Status: PC Test Mode (Sending Default GPS)"
+                    print(f"GPS Error: {e}")
             
-            Clock.unschedule(self.trigger_network_thread)
-            Clock.schedule_interval(self.trigger_network_thread, 5)
+            self.status_label.text = "Status: Tracking LIVE..."
+            # टाइम इंटरवल के हिसाब से डेटा भेजना
+            self.event = Clock.schedule_interval(self.send_data_to_django, self.update_interval)
 
     def on_gps_location(self, **kwargs):
-        Clock.schedule_once(lambda dt: self._update_gps_ui(kwargs))
-
-    def _update_gps_ui(self, kwargs):
+        """GPS से लोकेशन मिलने पर अपडेट करना"""
         self.current_lat = kwargs.get('lat', self.current_lat)
         self.current_lon = kwargs.get('lon', self.current_lon)
-        clean_ip = self.django_url.replace("http://", "").replace("/api/log-location/", "")
-        self.gps_label.text = f"Phone: {self.user_phone}\nServer: {clean_ip}\nGPS: {self.current_lat}, {self.current_lon}"
 
-    def trigger_network_thread(self, dt):
+    def send_data_to_django(self, dt):
+        """Django सर्वर को डेटा भेजना"""
         if self.tracking_active:
+            url = f"http://{self.django_ip}:8000/api/log-location/"
             payload = {
-                "phone": str(self.user_phone),
-                "lat": str(self.current_lat),
-                "lon": str(self.current_lon)
+                "phone": self.user_phone,
+                "lat": self.current_lat,
+                "lon": self.current_lon
             }
-            threading.Thread(target=self.send_data_to_django, args=(payload,), daemon=True).start()
-
-    def send_data_to_django(self, payload):
-        try:
-            response = requests.post(self.django_url, json=payload, headers={"Content-Type": "application/json"}, timeout=4)
-            if response.status_code in [200, 201]:
-                print(f"Location Synced for {payload['phone']}")
-            else:
-                print(f"Server Error: {response.status_code}")
-        except Exception as e:
-            print(f"Network Connection Error: {e}")
+            try:
+                # timeout जरूरी है ताकि सर्वर डाउन होने पर ऐप हैंग न हो
+                requests.post(url, json=payload, timeout=3)
+                print(f"Location sent to {self.django_ip}")
+            except:
+                print("Network Error: Could not connect to Server")
 
     def stop_tracking(self, *args):
-        if self.tracking_active:
-            Clock.unschedule(self.trigger_network_thread)
-            if platform == 'android' and gps:
-                try:
-                    gps.stop()
-                except:
-                    pass
-            self.tracking_active = False
-            self.status_label.text = "Status: Stopped"
-            clean_ip = self.django_url.replace("http://", "").replace("/api/log-location/", "")
-            self.gps_label.text = f"Phone: {self.user_phone}\nServer: {clean_ip}\nGPS: Off"
-
-    def reset_settings(self, *args):
-        self.stop_tracking()
-        if self.store.exists('user'):
-            self.store.delete('user')
-        self.show_registration_screen()
+        """ट्रैकिंग रोकना"""
+        if self.event:
+            Clock.unschedule(self.event)
+        
+        if platform == 'android' and gps:
+            gps.stop()
+            
+        self.tracking_active = False
+        self.status_label.text = "Status: Stopped"
 
 if __name__ == '__main__':
     GPSTrackerApp().run()
