@@ -31,8 +31,10 @@ jobs:
         # Buildozer और Kivy के लिए ज़रूरी पैकेजेस
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-venv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache patch libltdl-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
         
+        # Pip को अपग्रेड करना और सही Cython वर्ज़न इंस्टॉल करना
         pip install --upgrade pip setuptools wheel virtualenv
-        pip install "buildozer==1.5.0" sh pathspec
+        # Kivy 2.3.0 के लिए 0.29.33 सबसे स्टेबल Cython वर्ज़न है
+        pip install "cython==0.29.33" "buildozer==1.5.0" sh pathspec
 
     - name: Build with Buildozer
       run: |
@@ -43,9 +45,10 @@ jobs:
         buildozer --verbose android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
-        # यहाँ सिर्फ SDK पाथ दिया है, NDK पाथ पूरी तरह हटा दिया है ताकि कोई एरर न आए
+        # SDK पाथ सेटिंग्स
         ANDROID_HOME: /usr/local/lib/android/sdk
         ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        # ध्यान दें: हमने यहाँ NDK पाथ हटा रखा है ताकि टकराव न हो
 
     - name: Upload APK
       uses: actions/upload-artifact@v4.6.1
