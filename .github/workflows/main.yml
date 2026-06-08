@@ -3,7 +3,6 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
-# यहाँ पूरे वर्कफ़्लो के लिए Node.js 24 को फ़ोर्स किया गया है ताकि चेतावनी (Warning) आना बंद हो जाए
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
@@ -31,12 +30,14 @@ jobs:
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev
         pip install --upgrade pip setuptools virtualenv
-        pip install "cython<3.0.0" "buildozer==1.5.0"
+        # बिल्ड फेल होने से बचाने के लिए Cython और Buildozer का सही वर्जन
+        pip install "cython<3.0.0" "buildozer==1.5.0" "sh"
 
     - name: Build with Buildozer
       run: |
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
-        yes | buildozer android debug
+        # 'yes |' हटाने के लिए हमने --bdr-minus-एक और सीधा कमांड यूज़ किया है जो क्रैश नहीं होता
+        buildozer android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
 
