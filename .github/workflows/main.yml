@@ -3,9 +3,12 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -14,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11' # आधुनिक टूल्स के लिए पायथन 3.11
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -28,13 +31,14 @@ jobs:
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-venv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache patch libltdl-dev libunwind-dev
         
         pip install --upgrade pip setuptools wheel virtualenv
-        pip install "cython==0.29.33" "buildozer==1.5.0" sh pathspec
+        # नए कंपाइलर के लिए Cython 3.0.x का होना आवश्यक है
+        pip install "cython>=3.0.0" "buildozer>=1.5.0" sh pathspec
 
     - name: Build with Buildozer
       run: |
+        # पुराने किसी भी खराब कैशे को डिलीट करना
+        rm -rf .buildozer/
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
-        # पुराना कोई भी टूटा हुआ डिस्ट्रीब्यूशन कैशे डिलीट करने के लिए फोर्स कमांड
-        rm -rf .buildozer/android/platform/python-for-android
         buildozer --verbose android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
