@@ -3,24 +3,21 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # सबसे स्टेबल उबंटू वर्ज़न बिल्डोजर के लिए
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v5.4.0
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v4.4.0
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -28,30 +25,14 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt update
-        # Buildozer और Kivy के लिए ज़रूरी पैकेजेस
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-venv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache patch libltdl-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
         
-        # Pip को अपग्रेड करना और सही Cython वर्ज़न इंस्टॉल करना
         pip install --upgrade pip setuptools wheel virtualenv
-        # Kivy 2.3.0 के लिए 0.29.33 सबसे स्टेबल Cython वर्ज़न है
         pip install "cython==0.29.33" "buildozer==1.5.0" sh pathspec
 
     - name: Build with Buildozer
       run: |
-        # सुरक्षा के लिए डिफ़ॉल्ट कॉन्फ़िगरेशन बनाना
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
-        
-        # Buildozer कमांड रन करना
         buildozer --verbose android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
-        # SDK पाथ सेटिंग्स
-        ANDROID_HOME: /usr/local/lib/android/sdk
-        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-        # ध्यान दें: हमने यहाँ NDK पाथ हटा रखा है ताकि टकराव न हो
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4.6.1
-      with:
-        name: GPS-Tracker-App
-        path: bin/*.apk
