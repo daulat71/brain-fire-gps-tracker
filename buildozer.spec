@@ -7,7 +7,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
 # आवश्यक रिक्वायरमेंट्स (यह बिल्कुल सही हैं)
-requirements = python3, kivy==2.3.0, kivymd==1.2.0, pillow, plyer, requests, urllib3, openssl, certifi
+rrequirements = python3, kivy==2.3.0, kivymd==1.2.0, pillow, plyer, requests
 
 orientation = portrait
 fullscreen = 0
@@ -27,7 +27,7 @@ android.private_storage = True
 android.accept_sdk_license = True
 
 # आर्किटेक्चर सेटिंग्स (64-bit आधुनिक फोन के लिए सही है)
-android.archs = armeabi-v7a, arm64-v8a
+android.archs = arm64-v8a
 
 [buildozer]
 log_level = 2
