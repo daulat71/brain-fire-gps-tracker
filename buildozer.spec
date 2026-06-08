@@ -16,7 +16,7 @@ fullscreen = 0
 android.permissions = INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, FOREGROUND_SERVICE, FOREGROUND_SERVICE_LOCATION, POST_NOTIFICATIONS
 
 # गिटहब रनर के अनुसार स्टेबल एपीआई सेटिंग्स
-android.api = 34
+android.api = 33
 android.minapi = 21
 android.ndk_api = 21
 
