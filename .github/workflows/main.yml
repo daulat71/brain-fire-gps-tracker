@@ -28,7 +28,9 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache
+        # Ubuntu 24 और Meson/Ninja के लिए सभी ज़रूरी पैकेजेस (patch और python3-venv सहित)
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-venv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache patch
+        
         pip install --upgrade pip setuptools virtualenv
         pip install "cython<3.0.0" "buildozer==1.5.0" "sh" "pathspec"
 
@@ -39,7 +41,6 @@ jobs:
         
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
         
-        # सुधार: 'buildozer android clean' को हटा दिया गया है क्योंकि यह फ्रेश रनर पर क्रैश कर रहा था
         buildozer --verbose android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
