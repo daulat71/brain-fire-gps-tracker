@@ -28,24 +28,20 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt update
-        # Ubuntu 24 के लिए आवश्यक अतिरिक्त कंपाइलर और टूल्स जोड़े गए हैं
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache pathspec
+        # सुधार: यहाँ से 'pathspec' हटा दिया गया है ताकि apt error न आए
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache
         pip install --upgrade pip setuptools virtualenv
-        # बिल्ड फेल होने से बचाने के लिए Cython और Buildozer का परफेक्ट कॉम्बिनेशन
-        pip install "cython<3.0.0" "buildozer==1.5.0" "sh"
+        # pathspec को सही जगह (pip) पर डाल दिया है
+        pip install "cython<3.0.0" "buildozer==1.5.0" "sh" "pathspec"
 
     - name: Build with Buildozer
       run: |
-        # पुराने टूल्स के वेरिएबल्स को हटाना
         export ANDROID_NDK_ROOT=""
         export ANDROID_NDK_HOME=""
         
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
         
-        # पुराना कचरा (कैरप्टेड कैशे) साफ़ करना ताकि नई रेसिपी सही से बने
         buildozer android clean
-        
-        # बिना अटके पूरी डिटेल्स के साथ एंड्रॉइड डीबग बिल्ड शुरू करना
         buildozer --verbose android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
