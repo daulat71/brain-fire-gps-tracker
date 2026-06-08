@@ -28,10 +28,8 @@ jobs:
     - name: Install System Dependencies
       run: |
         sudo apt update
-        # सुधार: यहाँ से 'pathspec' हटा दिया गया है ताकि apt error न आए
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache
         pip install --upgrade pip setuptools virtualenv
-        # pathspec को सही जगह (pip) पर डाल दिया है
         pip install "cython<3.0.0" "buildozer==1.5.0" "sh" "pathspec"
 
     - name: Build with Buildozer
@@ -41,7 +39,7 @@ jobs:
         
         mkdir -p ~/.android && touch ~/.android/repositories.cfg
         
-        buildozer android clean
+        # सुधार: 'buildozer android clean' को हटा दिया गया है क्योंकि यह फ्रेश रनर पर क्रैश कर रहा था
         buildozer --verbose android debug
       env:
         ACCEPT_ANDROID_SDK_LICENSES: "y"
