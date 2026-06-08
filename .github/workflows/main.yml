@@ -3,6 +3,10 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
+# यहाँ पूरे वर्कफ़्लो के लिए Node.js 24 को फ़ोर्स किया गया है ताकि चेतावनी (Warning) आना बंद हो जाए
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     runs-on: ubuntu-latest
