@@ -6,8 +6,8 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# आवश्यक रिक्वायरमेंट्स (बिना किसी एक्स्ट्रा स्पेस या टोकन के)
-requirements = python3,kivy==2.3.0,kivymd==1.2.0,pillow,plyer,requests
+# आवश्यक रिक्वायरमेंट्स - (इसे एक ही लाइन में बिना किसी स्पेस के रखें)
+requirements = python3,kivy,kivymd==1.2.0,pillow,plyer,requests
 
 orientation = portrait
 fullscreen = 0
@@ -15,8 +15,8 @@ fullscreen = 0
 # एंड्रॉइड परमिशन्स
 android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,FOREGROUND_SERVICE,FOREGROUND_SERVICE_LOCATION,POST_NOTIFICATIONS
 
-# गिटहब रनर के अनुसार स्टेबल एपीआई सेटिंग्स
-android.api = 33
+# गिटहब के लेटेस्ट रनर के अनुसार सेटिंग्स
+android.api = 34
 android.minapi = 21
 android.ndk_api = 21
 android.private_storage = True
