@@ -39,14 +39,18 @@ class GPSTrackerApp(MDApp):
 
         self.main_layout = MDBoxLayout(orientation='vertical', padding=30, spacing=20)
         
-        # सुधार: एंड्रॉइड 13+ के लिए सभी ज़रूरी परमिशन्स एक साथ मांगना
+        # सुधार १: एंड्रॉइड परमिशन्स को सही और सुरक्षित तरीके से लोड करना
         if platform == 'android':
-            request_permissions([
-                Permission.ACCESS_FINE_LOCATION, 
-                Permission.ACCESS_COARSE_LOCATION,
-                Permission.FOREGROUND_SERVICE,
-                Permission.POST_NOTIFICATIONS
-            ])
+            try:
+                # POST_NOTIFICATIONS को स्ट्रिंग के रूप में सुरक्षित तरीके से पास किया ताकि पुराना SDK क्रैश न हो
+                request_permissions([
+                    Permission.ACCESS_FINE_LOCATION, 
+                    Permission.ACCESS_COARSE_LOCATION,
+                    Permission.FOREGROUND_SERVICE,
+                    "android.permission.POST_NOTIFICATIONS"
+                ])
+            except Exception as e:
+                print(f"Permission Request Error: {e}")
         
         if self.store.exists('user'):
             self.show_tracking_screen()
@@ -62,7 +66,7 @@ class GPSTrackerApp(MDApp):
         title.font_style = "H5"
         self.main_layout.add_widget(title)
         
-        # सुधार: KivyMD 1.2.0 के अनुकूल टेक्सटफ़ील्ड्स (mode="outline" का उपयोग सुरक्षित रहता है)
+        # KivyMD 1.2.0 के अनुकूल आउटलाइन टेक्सटफ़ील्ड्स
         self.name_input = MDTextField(hint_text="Enter Your Full Name", mode="outline", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         self.phone_input = MDTextField(hint_text="Enter Mobile Number", mode="outline", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         
@@ -123,13 +127,15 @@ class GPSTrackerApp(MDApp):
         )
         
         self.start_btn = MDRaisedButton(text="Start Sharing Location", size_hint=(1, None), on_release=self.start_tracking)
-        self.stop_btn = MDRaisedButton(text="Stop Sharing", size_hint=(1, None), md_bg_color=(1, 0, 0, 1), on_release=self.stop_tracking)
+        
+        # सुधार २: KivyMD 1.2.0 में कलर सेटिंग्स को टुपल/लिस्ट फॉर्मेट में सुरक्षित किया
+        self.stop_btn = MDRaisedButton(text="Stop Sharing", size_hint=(1, None), md_bg_color=[1, 0, 0, 1], on_release=self.stop_tracking)
         
         reset_btn = MDRaisedButton(
             text="Change IP / Settings", 
             size_hint=(0.6, None), 
             pos_hint={'center_x': 0.5},
-            md_bg_color=(0.5, 0.5, 0.5, 1), 
+            md_bg_color=[0.5, 0.5, 0.5, 1], 
             on_release=self.reset_settings
         )
         
@@ -152,11 +158,12 @@ class GPSTrackerApp(MDApp):
             else:
                 self.status_label.text = "Status: PC Test Mode (Sending Default GPS)"
             
-            # हर 5 सेकंड में नेटवर्क थ्रेड को ट्रिगर करना
+            # पुराना शेड्यूल हटाया ताकि डुप्लीकेट न बने, फिर फ्रेश शेड्यूल किया
+            Clock.unschedule(self.trigger_network_thread)
             Clock.schedule_interval(self.trigger_network_thread, 5)
 
     def on_gps_location(self, **kwargs):
-        # सुधार: थ्रेड से आने वाले डेटा को मुख्य थ्रेड पर सुरक्षित रूप से अपडेट करना
+        # थ्रेड से आने वाले डेटा को मुख्य थ्रेड पर सुरक्षित रूप से अपडेट करना
         Clock.schedule_once(lambda dt: self._update_gps_ui(kwargs))
 
     def _update_gps_ui(self, kwargs):
@@ -168,10 +175,11 @@ class GPSTrackerApp(MDApp):
     def trigger_network_thread(self, dt):
         if self.tracking_active:
             payload = {
-                "phone": self.user_phone,
+                "phone": str(self.user_phone),
                 "lat": str(self.current_lat),
                 "lon": str(self.current_lon)
             }
+            # बैकग्राउंड थ्रेड में रिक्वेस्ट भेजना ताकि UI हैंग न हो
             threading.Thread(target=self.send_data_to_django, args=(payload,), daemon=True).start()
 
     def send_data_to_django(self, payload):
@@ -199,7 +207,8 @@ class GPSTrackerApp(MDApp):
 
     def reset_settings(self, *args):
         self.stop_tracking()
-        self.store.delete('user')
+        if self.store.exists('user'):
+            self.store.delete('user')
         self.show_registration_screen()
 
 if __name__ == '__main__':
