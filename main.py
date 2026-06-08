@@ -27,7 +27,10 @@ class GPSTrackerApp(MDApp):
         # एंड्रॉइड के लिए सुरक्षित स्टोरेज पाथ
         if platform == 'android':
             from android.storage import app_context
-            data_dir = app_context().getFilesDir().getAbsolutePath()
+            try:
+                data_dir = app_context().getFilesDir().getAbsolutePath()
+            except Exception:
+                data_dir = os.path.dirname(os.path.abspath(__file__))
             store_path = os.path.join(data_dir, 'user_config.json')
         else:
             store_path = 'user_config.json'
@@ -39,10 +42,9 @@ class GPSTrackerApp(MDApp):
 
         self.main_layout = MDBoxLayout(orientation='vertical', padding=30, spacing=20)
         
-        # सुधार १: एंड्रॉइड परमिशन्स को सही और सुरक्षित तरीके से लोड करना
+        # एंड्रॉइड परमिशन्स को सही और सुरक्षित तरीके से लोड करना
         if platform == 'android':
             try:
-                # POST_NOTIFICATIONS को स्ट्रिंग के रूप में सुरक्षित तरीके से पास किया ताकि पुराना SDK क्रैश न हो
                 request_permissions([
                     Permission.ACCESS_FINE_LOCATION, 
                     Permission.ACCESS_COARSE_LOCATION,
@@ -66,7 +68,6 @@ class GPSTrackerApp(MDApp):
         title.font_style = "H5"
         self.main_layout.add_widget(title)
         
-        # KivyMD 1.2.0 के अनुकूल आउटलाइन टेक्सटफ़ील्ड्स
         self.name_input = MDTextField(hint_text="Enter Your Full Name", mode="outline", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         self.phone_input = MDTextField(hint_text="Enter Mobile Number", mode="outline", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         
@@ -127,8 +128,6 @@ class GPSTrackerApp(MDApp):
         )
         
         self.start_btn = MDRaisedButton(text="Start Sharing Location", size_hint=(1, None), on_release=self.start_tracking)
-        
-        # सुधार २: KivyMD 1.2.0 में कलर सेटिंग्स को टुपल/लिस्ट फॉर्मेट में सुरक्षित किया
         self.stop_btn = MDRaisedButton(text="Stop Sharing", size_hint=(1, None), md_bg_color=[1, 0, 0, 1], on_release=self.stop_tracking)
         
         reset_btn = MDRaisedButton(
@@ -158,12 +157,10 @@ class GPSTrackerApp(MDApp):
             else:
                 self.status_label.text = "Status: PC Test Mode (Sending Default GPS)"
             
-            # पुराना शेड्यूल हटाया ताकि डुप्लीकेट न बने, फिर फ्रेश शेड्यूल किया
             Clock.unschedule(self.trigger_network_thread)
             Clock.schedule_interval(self.trigger_network_thread, 5)
 
     def on_gps_location(self, **kwargs):
-        # थ्रेड से आने वाले डेटा को मुख्य थ्रेड पर सुरक्षित रूप से अपडेट करना
         Clock.schedule_once(lambda dt: self._update_gps_ui(kwargs))
 
     def _update_gps_ui(self, kwargs):
@@ -179,7 +176,6 @@ class GPSTrackerApp(MDApp):
                 "lat": str(self.current_lat),
                 "lon": str(self.current_lon)
             }
-            # बैकग्राउंड थ्रेड में रिक्वेस्ट भेजना ताकि UI हैंग न हो
             threading.Thread(target=self.send_data_to_django, args=(payload,), daemon=True).start()
 
     def send_data_to_django(self, payload):
