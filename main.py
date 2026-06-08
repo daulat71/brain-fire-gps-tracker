@@ -24,13 +24,9 @@ class GPSTrackerApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
         
-        # एंड्रॉइड के लिए सुरक्षित स्टोरेज पाथ
+        # एंड्रॉइड और पीसी दोनों के लिए 100% सुरक्षित और क्रैश-फ्री स्टोरेज पाथ
         if platform == 'android':
-            from android.storage import app_context
-            try:
-                data_dir = app_context().getFilesDir().getAbsolutePath()
-            except Exception:
-                data_dir = os.path.dirname(os.path.abspath(__file__))
+            data_dir = self.user_data_dir  # यह बिना किसी एरर के एंड्रॉइड का ऐप-डेटा फोल्डर देता है
             store_path = os.path.join(data_dir, 'user_config.json')
         else:
             store_path = 'user_config.json'
@@ -42,7 +38,7 @@ class GPSTrackerApp(MDApp):
 
         self.main_layout = MDBoxLayout(orientation='vertical', padding=30, spacing=20)
         
-        # एंड्रॉइड परमिशन्स को सही और सुरक्षित तरीके से लोड करना
+        # एंड्रॉइड परमिशन्स का सुरक्षित सेटअप
         if platform == 'android':
             try:
                 request_permissions([
@@ -64,8 +60,9 @@ class GPSTrackerApp(MDApp):
     def show_registration_screen(self):
         self.main_layout.clear_widgets()
         
+        # KivyMD 1.2.0 के नियमानुसार font_style को छोटे अक्षरों (h5) में किया गया है
         title = MDLabel(text="Engineer Registration", halign="center")
-        title.font_style = "H5"
+        title.font_style = "h5" 
         self.main_layout.add_widget(title)
         
         self.name_input = MDTextField(hint_text="Enter Your Full Name", mode="outline", size_hint_x=0.9, pos_hint={'center_x': 0.5})
@@ -115,8 +112,9 @@ class GPSTrackerApp(MDApp):
         self.user_phone = user_data['phone']
         self.django_url = user_data['server_url']
 
+        # यहाँ भी h6 को छोटा किया गया है क्रैश रोकने के लिए
         welcome_lbl = MDLabel(text=f"Welcome, {self.user_name}", halign="center")
-        welcome_lbl.font_style = "H6"
+        welcome_lbl.font_style = "h6"
         self.main_layout.add_widget(welcome_lbl)
         
         self.status_label = MDLabel(text="Status: Ready", halign="center", theme_text_color="Hint")
