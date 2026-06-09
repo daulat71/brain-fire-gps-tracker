@@ -1,7 +1,4 @@
 import os
-# Windows पर ग्राफिक्स एरर से बचने के लिए
-#os.environ['KIVY_GL_BACKEND'] = 'angle_sdl2'
-
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton, MDFlatButton
@@ -10,7 +7,8 @@ from kivymd.uix.textfield import MDTextField
 from kivy.clock import Clock
 from kivy.utils import platform
 from kivy.storage.jsonstore import JsonStore
-import requests
+# बदलाव 1: requests की जगह UrlRequest का उपयोग करें
+from kivy.network.urlrequest import UrlRequest 
 
 # GPS लाइब्रेरी लोड करना
 try:
@@ -18,9 +16,19 @@ try:
 except ImportError:
     gps = None
 
+# बदलाव 2: एंड्रॉइड पर यूजर से लोकेशन की परमिशन मांगने के लिए
+if platform == 'android':
+    from android.permissions import request_permissions, Permission
+    def check_permissions():
+        request_permissions([Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION])
+
 class GPSTrackerApp(MDApp):
     def build(self):
         self.theme_cls.primary_palette = "Blue"
+        
+        # ऐप खुलते ही एंड्रॉइड पर परमिशन मांगना
+        if platform == 'android':
+            check_permissions()
         
         # मोबाइल में डेटा स्टोर करने के लिए सही रास्ता (Path) तय करना
         data_dir = self.user_data_dir
@@ -56,8 +64,6 @@ class GPSTrackerApp(MDApp):
         self.name_input = MDTextField(hint_text="Full Name", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         self.phone_input = MDTextField(hint_text="Mobile Number", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         self.ip_input = MDTextField(text="192.168.100.66", hint_text="Django Server IP", size_hint_x=0.9, pos_hint={'center_x': 0.5})
-        
-        # यहाँ बदलाव किया है: डिफ़ॉल्ट टाइम 5 से बदलकर 60 (1 मिनट) कर दिया है
         self.time_input = MDTextField(text="60", hint_text="Send Interval (Seconds)", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         
         save_btn = MDRaisedButton(
@@ -145,20 +151,32 @@ class GPSTrackerApp(MDApp):
         self.current_lon = kwargs.get('lon', self.current_lon)
 
     def send_data_to_django(self, dt):
-        """Django सर्वर को डेटा भेजना"""
+        """Django सर्वर को UrlRequest के जरिए सुरक्षित डेटा भेजना"""
         if self.tracking_active:
             url = f"http://{self.django_ip}:8000/api/log-location/"
-            payload = {
+            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            payload = str({
                 "phone": self.user_phone,
                 "lat": self.current_lat,
                 "lon": self.current_lon
-            }
-            try:
-                # यहाँ बदलाव किया है: टाइमआउट 3 से बढ़ाकर 55 सेकंड कर दिया है
-                requests.post(url, json=payload, timeout=55)
-                print(f"Location sent to {self.django_ip}")
-            except:
-                print("Network Error: Could not connect to Server")
+            })
+            
+            # UrlRequest एंड्रॉइड पर बैकग्राउंड में बिना क्रैश किए काम करता है
+            UrlRequest(
+                url, 
+                req_body=payload, 
+                req_headers=headers,
+                on_success=self.on_success,
+                on_failure=self.on_error,
+                on_error=self.on_error,
+                timeout=55
+            )
+
+    def on_success(self, req, result):
+        print(f"Location sent to {self.django_ip}")
+
+    def on_error(self, req, result):
+        print("Network Error: Could not connect to Server")
 
     def stop_tracking(self, *args):
         """ट्रैकिंग रोकना"""
