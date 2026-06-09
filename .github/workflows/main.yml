@@ -15,7 +15,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # 2. जावा सेट अप करना (Java 17)
+    # 2. जावा सेट अप करना (Java 17 अनिवार्य है)
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -28,30 +28,30 @@ jobs:
       with:
         python-version: '3.11'
 
-    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना
+    # 4. जरूरी टूल्स और डिपेंडेंसीज इंस्टॉल करना
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg autoconf automake libtool
+        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg autoconf automake libtool ccache
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
-    # 5. गिटहब के सभी नए और छिपे हुए NDK वेरिएबल्स को पूरी तरह मिटाना
-    - name: Purge All GitHub NDK Variables
+    # 5. गिटहब के सिस्टम पाथ को बिल्डोज़र से पूरी तरह अलग करना
+    - name: Isolated Build with Buildozer
       run: |
+        # गिटहब के सिस्टम NDK को पूरी तरह डिलीट करना
         sudo rm -rf /usr/local/lib/android/sdk/ndk
-        echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
-        echo "ANDROID_NDK=" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=" >> $GITHUB_ENV
-        echo "ANDROID_NDK_LATEST_HOME=" >> $GITHUB_ENV
-        echo "ANDROID_HOME=" >> $GITHUB_ENV
-
-    # 6. सीधा फ्रेश APK बिल्ड करना
-    - name: Build with Buildozer
-      run: |
+        
+        # लोकल एनवायरनमेंट वेरिएबल्स सेट करके सीधे बिल्ड रन करना
+        export ANDROID_NDK_ROOT=""
+        export ANDROID_NDK_HOME=""
+        export ANDROID_NDK_LATEST_HOME=""
+        export ANDROID_HOME=""
+        
+        # पूरी तरह फ्रेश और आइसोलेटेड बिल्ड
         buildozer android debug
-
-    # 7. APK को गिटहब पर अपलोड करना
+        
+    # 6. APK को गिटहब पर अपलोड करना
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
