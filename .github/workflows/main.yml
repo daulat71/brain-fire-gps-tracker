@@ -15,7 +15,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # 2. जावा सेट अप करना (Java 17 अनिवार्य है)
+    # 2. जावा सेट अप करना (Java 17)
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -28,7 +28,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    # 4. जरूरी टूल्स और डिपेंडेंसीज इंस्टॉल करना
+    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -36,23 +36,26 @@ jobs:
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
-    # 5. गिटहब के सिस्टम पाथ को ब्लॉक करके सीधा फ्रेश APK बिल्ड करना
-    - name: Build with Buildozer (Environment Overridden)
+    # 5. पुराने कॉन्फ्लिक्ट्स और आधी अधूरी फाइल्स को वाइप करना
+    - name: Clean Conflicted Tools
+      run: |
+        sudo rm -rf /usr/local/lib/android/sdk/ndk
+        sudo rm -rf /usr/local/lib/android/sdk/ndk-bundle
+        # पुराने टूटे हुए r25b बिल्ड आर्किटेक्चर को साफ़ करना ताकि नया r26b फ्रेश कंपाइल हो
+        rm -rf .buildozer/android/platform/build-*
+
+    # 6. ओवरराइड एनवायरनमेंट के साथ फ्रेश APK बिल्ड करना
+    - name: Build with Buildozer
       env:
-        # यहाँ हम गिटहब के सारे डिफॉल्ट NDK रास्तों को हमेशा के लिए ब्लॉक कर रहे हैं
-        ANDROID_NDK: ""
-        ANDROID_NDK_ROOT: ""
         ANDROID_NDK_HOME: ""
         ANDROID_NDK_LATEST_HOME: ""
+        ANDROID_NDK_ROOT: ""
+        ANDROID_NDK: ""
         ANDROID_HOME: ""
       run: |
-        # गिटहब के सिस्टम वाले NDK को हार्ड-डिलीट करना ताकि कोई कनफ्लिक्ट न बचे
-        sudo rm -rf /usr/local/lib/android/sdk/ndk
-        
-        # फ्रेश और साफ-सुथरा बिल्ड
         buildozer android debug
 
-    # 6. APK को गिटहब पर अपलोड करना
+    # 7. APK को गिटहब पर अपलोड करना
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
