@@ -56,7 +56,9 @@ class GPSTrackerApp(MDApp):
         self.name_input = MDTextField(hint_text="Full Name", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         self.phone_input = MDTextField(hint_text="Mobile Number", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         self.ip_input = MDTextField(text="192.168.100.66", hint_text="Django Server IP", size_hint_x=0.9, pos_hint={'center_x': 0.5})
-        self.time_input = MDTextField(text="5", hint_text="Send Interval (Seconds)", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
+        
+        # यहाँ बदलाव किया है: डिफ़ॉल्ट टाइम 5 से बदलकर 60 (1 मिनट) कर दिया है
+        self.time_input = MDTextField(text="60", hint_text="Send Interval (Seconds)", input_filter="int", size_hint_x=0.9, pos_hint={'center_x': 0.5})
         
         save_btn = MDRaisedButton(
             text="Save Configuration", 
@@ -85,7 +87,6 @@ class GPSTrackerApp(MDApp):
                            interval=int(interval))
             self.show_tracking_screen()
         else:
-            # यहाँ आप चाहें तो एरर मैसेज दिखा सकते हैं
             print("All fields are required!")
 
     def show_tracking_screen(self):
@@ -153,8 +154,8 @@ class GPSTrackerApp(MDApp):
                 "lon": self.current_lon
             }
             try:
-                # timeout जरूरी है ताकि सर्वर डाउन होने पर ऐप हैंग न हो
-                requests.post(url, json=payload, timeout=3)
+                # यहाँ बदलाव किया है: टाइमआउट 3 से बढ़ाकर 55 सेकंड कर दिया है
+                requests.post(url, json=payload, timeout=55)
                 print(f"Location sent to {self.django_ip}")
             except:
                 print("Network Error: Could not connect to Server")
