@@ -35,7 +35,7 @@ fullscreen = 0
 android.permissions = INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION
 
 # (int) Target Android API, should be as high as possible.
-android.api = 34
+android.api = 33
 
 # (int) Minimum API your APK will support.
 android.minapi = 21
@@ -45,7 +45,7 @@ android.ndk_api = 21
 
 # ------ यहाँ हमने नया Nipro NDK फिक्स जोड़ा है ------
 # (str) Android NDK version to use
-android.ndk = 25b
+android.ndk = 26b
 # ------------------------------------------------
 
 # (bool) Use private storage or external
