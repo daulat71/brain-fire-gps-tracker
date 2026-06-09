@@ -15,7 +15,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # 2. जावा सेट अप करना (Java 17 अनिवार्य है)
+    # 2. जावा सेट अप करना (Java 17)
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -28,11 +28,11 @@ jobs:
       with:
         python-version: '3.11'
 
-    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना
+    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना (यहाँ auto-conf को autoconf कर दिया है)
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg auto-conf automake libtool
+        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg autoconf automake libtool
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
