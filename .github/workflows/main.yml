@@ -1,50 +1,49 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. कोड चेकआउट करना (अपडेटेड v5)
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    # 2. जावा सेटअप करना (अपडेटेड v5)
+    - name: Set up JDK
+      uses: actions/setup-java@v5
       with:
-        python-version: '3.11' # आधुनिक टूल्स के लिए पायथन 3.11
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
+        distribution: 'zulu'
         java-version: '17'
 
-    - name: Install System Dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip python3-venv autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libgdbm-dev libgdbm-compat-dev libsqlite3-dev libffi-dev xclip libx11-dev libxft-dev libasound2-dev libpulse-dev build-essential ccache patch libltdl-dev libunwind-dev
-        
-        pip install --upgrade pip setuptools wheel virtualenv
-        # नए कंपाइलर के लिए Cython 3.0.x का होना आवश्यक है
-        pip install "cython>=3.0.0" "buildozer>=1.5.0" sh pathspec
+    # 3. पाइथन सेटअप करना (अपडेटेड v6 जो Node 24 को सपोर्ट करता है)
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.11'
 
+    # 4. जरूरी टूल्स और डिपेंडेंसीज इंस्टॉल करना
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg
+        python -m pip install --upgrade pip
+        pip install Cython==3.0.10 buildozer
+
+    # 5. APK बिल्ड करना
     - name: Build with Buildozer
       run: |
-        # पुराने किसी भी खराब कैशे को डिलीट करना
-        rm -rf .buildozer/
-        mkdir -p ~/.android && touch ~/.android/repositories.cfg
-        buildozer --verbose android debug
-      env:
-        ACCEPT_ANDROID_SDK_LICENSES: "y"
+        buildozer android debug
 
-    - name: Upload APK
+    # 6. बनने के बाद APK को गिटहब पर अपलोड करना
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: GPS-Tracker-App
+        name: GPS-Tracker-APK
         path: bin/*.apk
