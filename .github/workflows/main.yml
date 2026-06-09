@@ -28,7 +28,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना (यहाँ auto-conf को autoconf कर दिया है)
+    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -36,12 +36,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
-    # 5. गिटहब के डिफ़ॉल्ट टूटे हुए रास्ते साफ करना
-    - name: Clear GitHub Default NDK Path
+    # 5. गिटहब के सभी नए और छिपे हुए NDK वेरिएबल्स को पूरी तरह मिटाना
+    - name: Purge All GitHub NDK Variables
       run: |
         sudo rm -rf /usr/local/lib/android/sdk/ndk
         echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
         echo "ANDROID_NDK=" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=" >> $GITHUB_ENV
+        echo "ANDROID_NDK_LATEST_HOME=" >> $GITHUB_ENV
+        echo "ANDROID_HOME=" >> $GITHUB_ENV
 
     # 6. सीधा फ्रेश APK बिल्ड करना
     - name: Build with Buildozer
