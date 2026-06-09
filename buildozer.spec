@@ -19,7 +19,6 @@ source.include_exts = py,png,jpg,kv,atlas,json
 version = 0.1
 
 # (list) Application requirements
-# ध्यान दें: हमने यहाँ से requests हटा दिया है और kivymd का stable वर्शन 1.1.1 कर दिया है
 requirements = python3,kivy==2.3.0,kivymd==1.1.1,pillow,plyer
 
 # (str) Supported orientations
@@ -44,6 +43,11 @@ android.minapi = 21
 # (int) Android NDK API to use
 android.ndk_api = 21
 
+# ------ यहाँ हमने नया Nipro NDK फिक्स जोड़ा है ------
+# (str) Android NDK version to use
+android.ndk = 25b
+# ------------------------------------------------
+
 # (bool) Use private storage or external
 android.private_storage = True
 
@@ -51,7 +55,6 @@ android.private_storage = True
 android.accept_sdk_license = True
 
 # (list) The Android architectures to build for.
-# दोनों आर्किटेक्चर रखने से ऐप हर प्रकार के एंड्रॉइड मोबाइल पर चलेगा
 android.archs = armeabi-v7a, arm64-v8a
 
 # ==============================================================================
