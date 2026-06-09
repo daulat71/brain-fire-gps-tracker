@@ -11,24 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. कोड चेकआउट करना (अपडेटेड v5)
+    # 1. कोड चेकआउट करना
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # 2. जावा सेटअप करना (अपडेटेड v5)
+    # 2. जावा सेटअप करना
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    # 3. पाइथन सेटअप करना (अपडेटेड v6 जो Node 24 को सपोर्ट करता है)
+    # 3. पाइथन सेटअप करना (Node 24 सपोर्टेड)
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
-    # 4. जरूरी टूल्स और डिपेंडेंसीज इंस्टॉल करना
+    # 4. जरूरी डिपेंडेंसीज इंस्टॉल करना
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -36,12 +36,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
-    # 5. APK बिल्ड करना
+    # 5. गिटहब के नए NDK 27 को हटाना (क्रैश होने की मुख्य वजह)
+    - name: Fix Android NDK Conflict
+      run: |
+        sudo rm -rf /usr/local/lib/android/sdk/ndk
+        echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
+
+    # 6. APK बिल्ड करना
     - name: Build with Buildozer
       run: |
         buildozer android debug
 
-    # 6. बनने के बाद APK को गिटहब पर अपलोड करना
+    # 7. APK को गिटहब पर अपलोड करना
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
