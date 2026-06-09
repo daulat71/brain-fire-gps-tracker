@@ -22,7 +22,7 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
-    # 3. पाइथन सेटअप करना (Node 24 सपोर्टेड)
+    # 3. पाइथन सेटअप करना
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -36,15 +36,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
-    # 5. गिटहब के नए NDK 27 को हटाना (क्रैश होने की मुख्य वजह)
-    - name: Fix Android NDK Conflict
+    # 5. गिटहब के सभी NDK रास्ते बंद करना
+    - name: Purge GitHub Android NDK & Cache
       run: |
         sudo rm -rf /usr/local/lib/android/sdk/ndk
         echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
+        echo "ANDROID_NDK=" >> $GITHUB_ENV
+        echo "ANDROID_HOME=" >> $GITHUB_ENV
 
-    # 6. APK बिल्ड करना
-    - name: Build with Buildozer
+    # 6. पूरी तरह साफ करके नया बिल्ड शुरू करना
+    - name: Clean and Build with Buildozer
       run: |
+        buildozer android clean
         buildozer android debug
 
     # 7. APK को गिटहब पर अपलोड करना
