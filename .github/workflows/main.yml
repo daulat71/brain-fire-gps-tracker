@@ -15,7 +15,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # 2. जावा सेट अप करना
+    # 2. जावा सेट अप करना (Java 17 अनिवार्य है)
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -32,20 +32,18 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg
+        sudo apt-get install -y libffi-dev libssl-dev build-essential ffmpeg auto-conf automake libtool
         python -m pip install --upgrade pip
         pip install Cython==3.0.10 buildozer
 
-    # 5. पुराने कनफ्लिक्टेड पाथ को साफ़ करना
-    - name: Clear Android NDK and Home Env
+    # 5. गिटहब के डिफ़ॉल्ट टूटे हुए रास्ते साफ करना
+    - name: Clear GitHub Default NDK Path
       run: |
         sudo rm -rf /usr/local/lib/android/sdk/ndk
         echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
         echo "ANDROID_NDK=" >> $GITHUB_ENV
-        echo "ANDROID_HOME=" >> $GITHUB_ENV
-        rm -rf .buildozer/android/platform/python-for-android
 
-    # 6. सीधे फ्रेश APK बिल्ड करना
+    # 6. सीधा फ्रेश APK बिल्ड करना
     - name: Build with Buildozer
       run: |
         buildozer android debug
